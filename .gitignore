@@ -10,3 +10,11 @@ results/*
 !results/benign-local/
 attacks*.yaml
 !examples/attacks.template.yaml
+!examples/attacks.yaml
+!src/agentshield/data/attacks.yaml
+artifacts/
+!results/detector/
+!results/attack-benchmark-final/
+!results/agentdojo-final/
+!results/learned-detector-qwen/
+!results/completion.json

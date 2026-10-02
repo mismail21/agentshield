@@ -112,3 +112,38 @@ def test_ollama_messages():
     ])
     assert [m["role"] for m in msgs] == ["system", "user", "assistant", "tool"]
     assert msgs[3]["content"] == "ERROR: out"
+
+
+def test_resume_rejects_changed_experiment(tmp_path):
+    model = ScriptedLLM([], name='fake')
+    run([model], [Shield.none()], tmp_path, scenarios=['email'], log=lambda _: None)
+    with pytest.raises(ValueError, match='configuration'):
+        run([model], [Shield.none()], tmp_path, scenarios=['email'], max_turns=3, log=lambda _: None)
+
+
+def test_fresh_does_not_append_duplicate_results(tmp_path):
+    model = ScriptedLLM([], name='fake')
+    run([model], [Shield.none()], tmp_path, scenarios=['email'], log=lambda _: None)
+    with pytest.raises(ValueError, match='nonempty'):
+        run([model], [Shield.none()], tmp_path, scenarios=['email'], resume=False, log=lambda _: None)
+
+
+def test_resume_rejects_changed_components_under_same_label(tmp_path):
+    model = ScriptedLLM([], name='fake')
+    run([model], [Shield(label='custom')], tmp_path, scenarios=['email'], log=lambda _: None)
+    with pytest.raises(ValueError, match='configuration'):
+        run([model], [Shield(label='custom',tools=True)], tmp_path, scenarios=['email'], log=lambda _: None)
+
+
+def test_resume_rejects_changed_detector_window(tmp_path):
+    class Detector:
+        name = 'test'
+        identity = 'same-weights'
+        inference_config = {'max_length':128}
+        def score(self, texts): return [0.0]*len(texts)
+    model = ScriptedLLM([], name='fake')
+    detector = Detector()
+    run([model], [Shield(detector=detector)], tmp_path, scenarios=['email'], log=lambda _: None)
+    detector.inference_config = {'max_length':256}
+    with pytest.raises(ValueError, match='configuration'):
+        run([model], [Shield(detector=detector)], tmp_path, scenarios=['email'], log=lambda _: None)

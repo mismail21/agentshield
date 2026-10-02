@@ -1,0 +1,13 @@
+{
+  "custom_episodes": 648,
+  "learned_detector_episodes": 108,
+  "agentdojo_episodes": 28,
+  "errors": 4,
+  "custom_usable": 644,
+  "status": "finalized_with_documented_timeouts",
+  "models": [
+    "ollama/qwen3:1.7b",
+    "ollama/qwen2.5:1.5b",
+    "ollama/llama3.2:1b"
+  ]
+}

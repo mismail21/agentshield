@@ -16,10 +16,12 @@ decision, but it only covers the argument kinds it knows about.
 from __future__ import annotations
 
 import re
+import posixpath
+from pathlib import PurePosixPath
 from typing import Any
 from urllib.parse import urlparse
 
-SHELL_META = re.compile(r"[|;&`$<>]|\b(curl|wget|nc|ncat|ssh|scp|base64|bash|sh|python\s+-c|rm|chmod|eval)\b")
+SHELL_META = re.compile(r"[\n\r|;&`$<>]|\b(curl|wget|nc|ncat|ssh|scp|base64|bash|sh|python\s+-c|rm|chmod|eval)\b")
 
 
 def _host_ok(host: str, domains: list[str]) -> bool:
@@ -57,7 +59,12 @@ def check_value(kind: str, value: Any, prompt: str, trusted: dict[str, list[str]
             return None
         return f"command {v!r} was not requested by the user and is not on the safe-command list"
     if kind == "path":
-        if v.lstrip("./") in prompt:
+        normalized = posixpath.normpath(v)
+        if '..' in PurePosixPath(v).parts or normalized in ('.','/'):
+            return f'path {v!r} is not an explicit file path without traversal'
+        candidates = {v, normalized, './' + normalized}
+        if any(re.search(r'(?<![\w./-])'+re.escape(candidate)+r'(?![\w./-])',prompt)
+               for candidate in candidates):
             return None
         return f"writing to {v!r} was not requested by the user"
     return None

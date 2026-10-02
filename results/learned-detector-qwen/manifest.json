@@ -1,0 +1,22 @@
+{
+  "configuration": {
+    "max_turns": 6,
+    "attacks_sha256": "8a18660bf4bd7dc029e16bf6a3aea1af14c874b17c9c09ae4679839704ead22d"
+  },
+  "defenses": {
+    "full": {
+      "threshold": 0.5,
+      "spotlight": true,
+      "tools": true,
+      "output": true,
+      "detector": "distilbert",
+      "inference": {
+        "max_length": 128,
+        "stride": 32,
+        "batch_size": 2,
+        "device": "cpu"
+      },
+      "identity": "8c2b75bebe63d98421710b6c691b1c0b06b5df9485a78e4a1daac5ff4948681f:6a55a009a488578ae526b098c43c4a4a6a39afee22f0d274cc7a96692ece973a"
+    }
+  }
+}

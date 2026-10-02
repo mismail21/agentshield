@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-shield"
-version = "0.1.0"
+version = "0.2.0"
 description = "Prompt-injection attack suite, benchmark and defense layer for tool-using LLM agents"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,18 +27,21 @@ detector = ["torch>=2.2", "transformers>=4.40"]
 anthropic = ["anthropic>=0.40"]
 train = ["torch>=2.2", "transformers>=4.40", "datasets>=2.18", "accelerate>=0.30"]
 dev = ["pytest>=8", "build"]
+agentdojo = ["agentdojo==0.1.35"]
 
 [project.urls]
 Homepage = "https://github.com/mismail21/agentshield"
 
 [project.scripts]
 agentshield = "agentshield.cli:main"
+agentshield-train = "agentshield.training:main"
+agentshield-agentdojo = "agentshield.agentdojo_bench:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentshield"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/agentshield", "README.md", "LICENSE"]
+include = ["src/agentshield", "README.md", "LICENSE", "examples", "tests", "docs"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

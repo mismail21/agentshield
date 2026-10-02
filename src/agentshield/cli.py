@@ -36,7 +36,9 @@ def cmd_bench(args: argparse.Namespace) -> None:
     from .defense.shield import Shield
     from .llm import make_llm
 
-    detector = load_detector(args.detector, args.detector_path) if any(
+    detector = load_detector(args.detector, args.detector_path, device=args.detector_device,
+                             batch_size=args.detector_batch_size, max_length=args.detector_max_length,
+                             stride=args.detector_stride) if any(
         "detector" in s or s == "full" for s in args.shields) else None
     shields = [Shield.from_spec(s, detector=detector, threshold=args.threshold) for s in args.shields]
     attacks = load_attacks(args.attacks) if args.attacks else None
@@ -77,11 +79,15 @@ def main(argv: list[str] | None = None) -> None:
                    help="e.g. gemini:gemini-3.5-flash-lite gemini:gemma-4-26b-a4b-it ollama:qwen3:1.7b")
     b.add_argument("--shields", nargs="+", default=["none", "full"],
                    help="none | full | components joined by '+': detector, spotlight, tools, output")
-    b.add_argument("--attacks", help="YAML attack file (see agentshield.attacks); omit for benign-only runs")
+    b.add_argument("--attacks", help="builtin or a YAML attack file; omit for benign-only runs")
     b.add_argument("--scenarios", nargs="+", help="subset of: triage email devassist")
     b.add_argument("--no-benign", action="store_true", help="skip the benign (no-attack) runs")
     b.add_argument("--detector", default="heuristic", help="heuristic | tfidf | HF model id or path")
     b.add_argument("--detector-path")
+    b.add_argument("--detector-device", default='cpu', choices=['cpu','mps','cuda'])
+    b.add_argument("--detector-batch-size", type=int, default=2)
+    b.add_argument("--detector-max-length", type=int, default=128)
+    b.add_argument("--detector-stride", type=int, default=32)
     b.add_argument("--threshold", type=float, default=0.5)
     b.add_argument("--max-turns", type=int, default=6)
     b.add_argument("--repeats", type=int, default=1, help="run each episode this many times")

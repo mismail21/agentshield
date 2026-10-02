@@ -14,6 +14,8 @@ positive label is ``INJECTION`` (or ``LABEL_1``).
 from __future__ import annotations
 
 import pickle
+import hashlib
+import json
 import re
 from pathlib import Path
 from typing import Protocol
@@ -58,6 +60,7 @@ class TfidfDetector:
     name = "tfidf-logreg"
 
     def __init__(self, path: str | Path):
+        self.identity = hashlib.sha256(Path(path).read_bytes()).hexdigest()
         with open(path, "rb") as f:
             self.pipeline = pickle.load(f)  # only load pickles you created yourself
 
@@ -77,13 +80,26 @@ class TransformerDetector:
 
         self.torch = torch
         self.name = Path(path).name
+        self.identity = str(path)
+        weights = Path(path) / 'model.safetensors'
+        if weights.is_file():
+            with weights.open('rb') as handle:
+                digest = hashlib.sha256()
+                for chunk in iter(lambda: handle.read(1024*1024), b''):
+                    digest.update(chunk)
+                self.identity = digest.hexdigest()
         self.tok = AutoTokenizer.from_pretrained(str(path))
         self.model = AutoModelForSequenceClassification.from_pretrained(str(path)).eval()
+        self.identity += ':' + hashlib.sha256(json.dumps({
+            'config':self.model.config.to_dict(), 'vocabulary':self.tok.get_vocab(),
+            'special_tokens':self.tok.special_tokens_map,
+        },sort_keys=True,default=str).encode()).hexdigest()
         if device is None:
             device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device
         self.model.to(device)
         self.max_length, self.stride, self.batch_size = max_length, stride, batch_size
+        self.inference_config = dict(max_length=max_length,stride=stride,batch_size=batch_size,device=device)
         labels = {v.lower(): k for k, v in self.model.config.id2label.items()}
         self.pos = labels.get("injection", labels.get("label_1", 1))
 

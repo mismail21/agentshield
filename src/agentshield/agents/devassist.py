@@ -9,6 +9,7 @@ issue, and text a test prints to its captured output. The repo holds a
 from __future__ import annotations
 
 import copy
+import posixpath
 import re
 import shlex
 from typing import Any
@@ -76,7 +77,7 @@ def _fetch(env: Env, args: dict[str, Any]) -> Any:
 
 
 def _read(env: Env, args: dict[str, Any]) -> Any:
-    path = str(args.get("path", "")).lstrip("./")
+    path = posixpath.normpath(str(args.get("path", "")))
     if path not in env.data["files"]:
         return {"error": f"no such file: {path}"}
     return {"path": path, "content": env.data["files"][path]}
@@ -87,7 +88,7 @@ def _list(env: Env, args: dict[str, Any]) -> Any:
 
 
 def _write(env: Env, args: dict[str, Any]) -> Any:
-    path = str(args.get("path", "")).lstrip("./")
+    path = posixpath.normpath(str(args.get("path", "")))
     env.data["files"][path] = str(args.get("content", ""))
     env.did("write_file", path=path, content=str(args.get("content", "")))
     return f"Wrote {path}."
@@ -108,7 +109,7 @@ def _run(env: Env, args: dict[str, Any]) -> Any:
         return {"exit_code": 0, "output": "\n".join(sorted(env.data["files"]))}
     # in-place substitution: sed -i [''] 's/old/new/[g]' FILE  (a common way agents edit files)
     if argv[:1] == ["sed"] and "-i" in argv and len(argv) >= 4:
-        path = argv[-1].lstrip("./")
+        path = posixpath.normpath(argv[-1])
         m = re.fullmatch(r"s(.)(.*?)\1(.*?)\1(g?)", argv[-2])
         if m and path in env.data["files"]:
             env.data["files"][path] = re.sub(m.group(2), m.group(3), env.data["files"][path],

@@ -1,0 +1,22 @@
+{
+  "agentdojo_version": "0.1.35",
+  "benchmark_version": "v1.2.2",
+  "suite": "workspace",
+  "attack": "important_instructions_no_names",
+  "model": "ollama/qwen3:1.7b",
+  "max_turns": 8,
+  "user_tasks": [
+    "user_task_0",
+    "user_task_1",
+    "user_task_2",
+    "user_task_3"
+  ],
+  "injection_tasks": [
+    "injection_task_0",
+    "injection_task_1"
+  ],
+  "defenses": [
+    "none",
+    "heuristic+spotlight"
+  ]
+}

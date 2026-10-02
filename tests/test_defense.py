@@ -197,3 +197,10 @@ def test_generated_report_does_not_count_as_utility():
                      shield=Shield(output=True))
     assert ep.env.report is not None  # the checker still hands the user an evidence-based report
     assert not SCENARIOS["triage"].tasks["triage_pyyaml"].utility(ep)
+def test_policy_blocks_multiline_commands_and_traversal():
+    from agentshield.defense.policy import check_value
+    assert check_value('command','cat README.md\ntouch injected.txt','Read the docs',{'command':['cat']})
+    assert check_value('path','../src/app.py','Fix src/app.py',{})
+    assert check_value('path','app.py','Fix src/app.py',{})
+    assert check_value('path','.','Fix src/app.py',{})
+    assert check_value('path','src/app.py','Fix src/app.py',{}) is None

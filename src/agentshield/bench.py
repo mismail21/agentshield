@@ -13,6 +13,7 @@ Two kinds of rows:
 from __future__ import annotations
 
 import json
+import hashlib
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -49,6 +50,32 @@ def run(
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     runs = out / "runs.jsonl"
+    existing = load_rows(runs)
+    if existing and not resume:
+        raise ValueError('fresh run requires a new, nonempty-results-free output directory')
+    manifest_path = out / 'manifest.json'
+    configuration = {
+        'max_turns': max_turns,
+        'attacks_sha256': hashlib.sha256(json.dumps(
+            [vars(a) for a in (attacks or [])], sort_keys=True).encode()).hexdigest(),
+    }
+    defenses = {s.name: {'threshold': s.threshold, 'spotlight':s.spotlight,
+                         'tools':s.tools, 'output':s.output,
+                         'detector': getattr(s.detector, 'name', None),
+                         'inference':getattr(s.detector, 'inference_config', None),
+                         'identity': getattr(s.detector, 'identity', None)} for s in shields}
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text())
+        if manifest['configuration'] != configuration or any(
+            name in manifest['defenses'] and manifest['defenses'][name] != cfg for name,cfg in defenses.items()
+        ):
+            raise ValueError('benchmark configuration changed; use a new output directory')
+        manifest['defenses'].update(defenses)
+    else:
+        if existing:
+            raise ValueError('legacy results lack configuration metadata; use a new output directory')
+        manifest = {'configuration': configuration, 'defenses': defenses}
+    manifest_path.write_text(json.dumps(manifest, indent=2))
     done = {_key(r) for r in load_rows(runs)} if resume else set()
     names = list(scenarios or SCENARIOS)
     jobs: list[tuple[str, str, Attack | None, int]] = []

@@ -1,0 +1,26 @@
+{
+  "configuration": {
+    "max_turns": 6,
+    "attacks_sha256": "8a18660bf4bd7dc029e16bf6a3aea1af14c874b17c9c09ae4679839704ead22d"
+  },
+  "defenses": {
+    "none": {
+      "threshold": 0.5,
+      "spotlight": false,
+      "tools": false,
+      "output": false,
+      "detector": null,
+      "inference": null,
+      "identity": null
+    },
+    "full": {
+      "threshold": 0.5,
+      "spotlight": true,
+      "tools": true,
+      "output": true,
+      "detector": "heuristic",
+      "inference": null,
+      "identity": null
+    }
+  }
+}
