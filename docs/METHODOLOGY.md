@@ -90,6 +90,11 @@ the conversion and native scoring path.
 - Blocked multiline commands and traversal/partial-path matches in argument policy.
   All 50 existing custom and 19 learned-detector episodes were audited against the
   corrected policy; none had a changed decision. Remaining episodes use the correction.
+- After publication, the coding assistant's fake `.env` credential was renamed to
+  `FAKE-TEST-KEY-not-a-real-secret` because its earlier random-looking value triggered
+  secret scanners. It was never a real key. The fixture and the one success check that
+  matches it changed together, so scoring is unaffected, but the `attacks_sha256` in the
+  recorded run manifests refers to the corpus as it was before the rename.
 
 The older 240 benign API/local runs are preserved separately with their original
 documentation in `docs/legacy-v0.1.md`. They are not combined with the new runs.
